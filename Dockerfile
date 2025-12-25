@@ -38,7 +38,7 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 # Copy application code
-COPY main.py ./
+COPY main.py pyproject.toml ./
 COPY src/ ./src/
 
 # Set environment variables

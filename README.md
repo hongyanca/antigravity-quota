@@ -40,6 +40,7 @@ cp .env.example .env
 
 ```bash
 # Google OAuth credentials
+# https://github.com/lbjlaq/Antigravity-Manager/blob/main/src-tauri/src/modules/oauth.rs
 CLIENT_ID=your-client-id
 CLIENT_SECRET=your-client-secret
 

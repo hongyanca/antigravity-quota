@@ -1,9 +1,12 @@
 """Configuration and environment variables."""
 
+import logging
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,7 +25,13 @@ CLIENT_ID = os.getenv("CLIENT_ID", "")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET", "")
 
 # Account file path (loaded from .env)
-ACCOUNT_FILE = Path(os.getenv("ACCOUNT_FILE", "antigravity.json"))
+# Resolve relative paths against the project root (parent of src/)
+_account_file_value = os.getenv("ACCOUNT_FILE", "antigravity.json").strip("'\"")
+_account_file_path = Path(_account_file_value)
+if not _account_file_path.is_absolute():
+    _account_file_path = Path(__file__).parent.parent / _account_file_path
+ACCOUNT_FILE = _account_file_path
+logger.info(f"ACCOUNT_FILE: {ACCOUNT_FILE}")
 
 # Server port (loaded from .env)
 PORT = int(os.getenv("PORT", "8000"))

@@ -8,7 +8,9 @@ Endpoints:
 """
 
 import time
+import tomllib
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 
@@ -20,7 +22,19 @@ from .cloudcode_client import (
     normalize_account,
 )
 
-app = FastAPI(title="Antigravity Quota API")
+
+def _get_version() -> str:
+    """Read version from pyproject.toml."""
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    with open(pyproject_path, "rb") as f:
+        data = tomllib.load(f)
+    return data["project"]["version"]
+
+
+app = FastAPI(
+    title="Antigravity Quota API",
+    version=_get_version(),
+)
 
 
 def format_time_remaining(reset_time: str) -> str:
