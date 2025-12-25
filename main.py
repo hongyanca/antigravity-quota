@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
 """Entry point for the Antigravity Quota API server."""
 
-import os
-
 import uvicorn
-from dotenv import load_dotenv
 
-from ag_quota_api import app
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Server port (loaded from .env, default 8000)
-PORT = int(os.getenv("PORT", "8000"))
+from src.api import app
+from src.config import PORT
 
 
 def main():

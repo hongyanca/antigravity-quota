@@ -112,12 +112,30 @@ When the server is running:
 
 ```
 antigravity-quota/
-├── main.py           # Entry point - starts the uvicorn server
-├── ag_quota_api.py   # FastAPI app with all endpoints and logic
-├── .env              # Environment variables (not in git)
-├── .env.example      # Example environment file
-├── API.md            # Detailed API documentation
-└── README.md         # This file
+├── antigravity.json           # Account file
+├── main.py                    # Entry point - starts the uvicorn server
+├── src/
+│   ├── __init__.py            # Package init
+│   ├── api.py                 # FastAPI app and endpoints
+│   ├── cloudcode_client.py    # Google Cloud Code API client
+│   └── config.py              # Configuration and env loading
+├── test/
+│   ├── __init__.py            # Test package init
+│   ├── test_api.py            # API module tests
+│   └── test_cloudcode_client.py  # Client module tests
+├── .env                       # Environment variables (not in git)
+├── .env.example               # Example environment file
+├── Dockerfile                 # Container build
+├── API.md                     # Detailed API documentation
+└── README.md                  # This file
+```
+
+## Testing
+
+Run tests with pytest:
+
+```bash
+uv run pytest test/ -v
 ```
 
 ## How It Works
@@ -151,7 +169,7 @@ docker build -t antigravity-quota .
 ```bash
 docker run -d -p 8000:8000 \
   --env-file .env \
-  -v $(pwd)/antigravity.json:/app/antigravity.json:ro \
+  -v $(pwd)/antigravity.json:/app/antigravity.json \
   --name antigravity-quota \
   antigravity-quota
 ```
@@ -169,7 +187,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./antigravity.json:/app/antigravity.json:ro
+      - ./antigravity.json:/app/antigravity.json
     restart: unless-stopped
 ```
 
