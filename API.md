@@ -17,10 +17,10 @@ http://127.0.0.1:8000
 uv run python main.py
 
 # Using uvicorn directly
-uv run uvicorn ag_quota_api:app --reload
+uv run uvicorn src.api:app --reload
 
 # Custom host/port
-uv run uvicorn ag_quota_api:app --host 0.0.0.0 --port 8080
+uv run uvicorn src.api:app --host 0.0.0.0 --port 8080
 ```
 
 ## Configuration
@@ -38,17 +38,42 @@ cp .env.example .env
 | `CLIENT_SECRET` | Google OAuth Client Secret | (required) |
 | `ACCOUNT_FILE` | Path to account JSON file | `antigravity.json` |
 | `PORT` | Server port | `8000` |
+| `USER_AGENT` | HTTP User-Agent header | `antigravity/1.13.3 Darwin/arm64` |
 
 ---
 
 ## Endpoints
 
-### 1. Get All Models
+### 1. Get Quota Overview
+
+Get a quick summary of quota percentages.
+
+```http
+GET /quota/overview
+```
+
+**Response:**
+
+```json
+{
+  "overview": "Pro 95% | Flash 90% | Claude 80%"
+}
+```
+
+**Example:**
+
+```bash
+curl http://127.0.0.1:8000/quota/overview
+```
+
+---
+
+### 2. Get All Models
 
 Get quota information for all Gemini and Claude models.
 
 ```http
-GET /quota
+GET /quota/all
 ```
 
 **Response:**
@@ -64,61 +89,7 @@ GET /quota
         "reset_time_relative": "4h 28m"
       },
       {
-        "name": "claude-sonnet-4-5",
-        "percentage": 99,
-        "reset_time": "2025-12-25T15:13:37Z",
-        "reset_time_relative": "4h 28m"
-      },
-      {
-        "name": "claude-sonnet-4-5-thinking",
-        "percentage": 99,
-        "reset_time": "2025-12-25T15:13:37Z",
-        "reset_time_relative": "4h 28m"
-      },
-      {
-        "name": "gemini-2.5-flash",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
-        "name": "gemini-2.5-flash-lite",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
-        "name": "gemini-2.5-flash-thinking",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
-        "name": "gemini-2.5-pro",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
-        "name": "gemini-3-flash",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
         "name": "gemini-3-pro-high",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
-        "name": "gemini-3-pro-image",
-        "percentage": 100,
-        "reset_time": "2025-12-25T15:21:27Z",
-        "reset_time_relative": "4h 35m"
-      },
-      {
-        "name": "gemini-3-pro-low",
         "percentage": 100,
         "reset_time": "2025-12-25T15:21:27Z",
         "reset_time_relative": "4h 35m"
@@ -133,17 +104,17 @@ GET /quota
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota | jq '.quota.models[].name'
+curl http://127.0.0.1:8000/quota/all | jq '.quota.models[].name'
 ```
 
 ---
 
-### 2. Get Gemini 3 Pro Models
+### 3. Get Gemini 3 Pro Models
 
 Get quota for Gemini 3 Pro variants (high, image, low).
 
 ```http
-GET /quota/gemini-3-pro
+GET /quota/pro
 ```
 
 **Response:**
@@ -180,17 +151,17 @@ GET /quota/gemini-3-pro
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/gemini-3-pro | jq '.quota.models[] | {name, percentage, reset_time_relative}'
+curl http://127.0.0.1:8000/quota/pro | jq '.quota.models[] | {name, percentage}'
 ```
 
 ---
 
-### 3. Get Gemini 3 Flash Model
+### 4. Get Gemini 3 Flash Model
 
 Get quota for Gemini 3 Flash model.
 
 ```http
-GET /quota/gemini-3-flash
+GET /quota/flash
 ```
 
 **Response:**
@@ -215,17 +186,17 @@ GET /quota/gemini-3-flash
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/gemini-3-flash | jq '.quota.models[0]'
+curl http://127.0.0.1:8000/quota/flash | jq '.quota.models[0]'
 ```
 
 ---
 
-### 4. Get Claude 4.5 Models
+### 5. Get Claude 4.5 Models
 
 Get quota for Claude 4.5 models.
 
 ```http
-GET /quota/claude-4-5
+GET /quota/claude
 ```
 
 **Response:**
@@ -262,7 +233,7 @@ GET /quota/claude-4-5
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/claude-4-5 | jq '.quota.models[] | select(.percentage < 100)'
+curl http://127.0.0.1:8000/quota/claude | jq '.quota.models[] | select(.percentage < 100)'
 ```
 
 ---
@@ -291,22 +262,27 @@ When the server is running, visit:
 
 ## Common Queries
 
+### Get quick overview
+```bash
+curl -s http://127.0.0.1:8000/quota/overview | jq -r '.overview'
+```
+
 ### Get low quota models (< 20%)
 ```bash
-curl -s http://127.0.0.1:8000/quota | jq '.quota.models[] | select(.percentage < 20)'
+curl -s http://127.0.0.1:8000/quota/all | jq '.quota.models[] | select(.percentage < 20)'
 ```
 
 ### Get models expiring soon (< 1 hour)
 ```bash
-curl -s http://127.0.0.1:8000/quota | jq '.quota.models[] | select(.reset_time_relative | contains("0h"))'
+curl -s http://127.0.0.1:8000/quota/all | jq '.quota.models[] | select(.reset_time_relative | contains("0h"))'
 ```
 
 ### Get percentage for specific model
 ```bash
-curl -s http://127.0.0.1:8000/quota | jq '.quota.models[] | select(.name == "gemini-3-pro-high") | .percentage'
+curl -s http://127.0.0.1:8000/quota/all | jq '.quota.models[] | select(.name == "gemini-3-pro-high") | .percentage'
 ```
 
 ### Get all model names
 ```bash
-curl -s http://127.0.0.1:8000/quota | jq -r '.quota.models[].name'
+curl -s http://127.0.0.1:8000/quota/all | jq -r '.quota.models[].name'
 ```

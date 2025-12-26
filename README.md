@@ -65,10 +65,11 @@ The server will start at `http://0.0.0.0:8000`.
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /quota` | All Gemini and Claude models |
-| `GET /quota/gemini-3-pro` | Gemini 3 Pro variants (high, image, low) |
-| `GET /quota/gemini-3-flash` | Gemini 3 Flash model |
-| `GET /quota/claude-4-5` | Claude 4.5 models |
+| `GET /quota/overview` | Quick summary string (e.g., "Pro 95% \| Flash 90% \| Claude 80%") |
+| `GET /quota/all` | All Gemini and Claude models |
+| `GET /quota/pro` | Gemini 3 Pro models (high, image, low) |
+| `GET /quota/flash` | Gemini 3 Flash model |
+| `GET /quota/claude` | Claude 4.5 models |
 
 ### Example Response
 
@@ -113,7 +114,7 @@ When the server is running:
 
 ```
 antigravity-quota/
-├── antigravity.json           # Account file
+├── antigravity.json           # Account file (not in git)
 ├── main.py                    # Entry point - starts the uvicorn server
 ├── src/
 │   ├── __init__.py            # Package init

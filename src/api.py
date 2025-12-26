@@ -1,10 +1,11 @@
 """FastAPI server for Antigravity quota queries.
 
 Endpoints:
-- GET /quota - All models with relative reset time
-- GET /quota/gemini-3-pro - Gemini 3 Pro models (high, image, low)
-- GET /quota/gemini-3-flash - Gemini 3 Flash model
-- GET /quota/claude-4-5 - Claude 4.5 models
+- GET /quota/overview - Quick summary ("Pro 95% | Flash 90% | Claude 80%")
+- GET /quota/all - All models with relative reset time
+- GET /quota/pro - Gemini 3 Pro models (high, image, low)
+- GET /quota/flash - Gemini 3 Flash model
+- GET /quota/claude - Claude 4.5 models
 """
 
 import time
@@ -113,14 +114,35 @@ def _get_quota_data():
     return get_quota(access_token, project_id)
 
 
-@app.get("/quota")
+@app.get("/quota/overview")
+async def get_quota_overview():
+    """Get quick quota summary as string (e.g., 'Pro 95% | Flash 90% | Claude 80%')."""
+    quota_raw = _get_quota_data()
+    quota_formatted = format_quota(quota_raw, show_relative=False)
+
+    # Get Pro average (gemini-3-pro-high)
+    pro_models = [m for m in quota_formatted["models"] if "gemini-3-pro-high" in m["name"].lower()]
+    pro_pct = pro_models[0]["percentage"] if pro_models else 0
+
+    # Get Flash (gemini-3-flash)
+    flash_models = [m for m in quota_formatted["models"] if "gemini-3-flash" in m["name"].lower()]
+    flash_pct = flash_models[0]["percentage"] if flash_models else 0
+
+    # Get Claude average (claude-sonnet-4-5, non-thinking)
+    claude_models = [m for m in quota_formatted["models"] if m["name"].lower() == "claude-sonnet-4-5"]
+    claude_pct = claude_models[0]["percentage"] if claude_models else 0
+
+    return {"overview": f"Pro {pro_pct}% | Flash {flash_pct}% | Claude {claude_pct}%"}
+
+
+@app.get("/quota/all")
 async def get_all_quota():
     """Get all models with relative reset time."""
     quota_raw = _get_quota_data()
     return {"quota": format_quota(quota_raw, show_relative=True)}
 
 
-@app.get("/quota/gemini-3-pro")
+@app.get("/quota/pro")
 async def get_gemini_3_pro():
     """Get Gemini 3 Pro models (high, image, low)."""
     quota_raw = _get_quota_data()
@@ -129,7 +151,7 @@ async def get_gemini_3_pro():
     return {"quota": filtered}
 
 
-@app.get("/quota/gemini-3-flash")
+@app.get("/quota/flash")
 async def get_gemini_3_flash():
     """Get Gemini 3 Flash model."""
     quota_raw = _get_quota_data()
@@ -138,7 +160,7 @@ async def get_gemini_3_flash():
     return {"quota": filtered}
 
 
-@app.get("/quota/claude-4-5")
+@app.get("/quota/claude")
 async def get_claude_4_5():
     """Get Claude 4.5 models."""
     quota_raw = _get_quota_data()
