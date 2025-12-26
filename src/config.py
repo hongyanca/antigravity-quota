@@ -35,3 +35,7 @@ logger.info(f"ACCOUNT_FILE: {ACCOUNT_FILE}")
 
 # Server port (loaded from .env)
 PORT = int(os.getenv("PORT", "8000"))
+
+# Query debounce time in minutes (loaded from .env)
+# Cache googleapis responses for this many minutes to avoid spamming
+QUERY_DEBOUNCE = int(os.getenv("QUERY_DEBOUNCE", "1"))

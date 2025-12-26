@@ -157,6 +157,7 @@ uv run pytest test/ -v
 | `ACCOUNT_FILE` | No | `antigravity.json` | Path to account JSON file |
 | `PORT` | No | `8000` | Server port |
 | `USER_AGENT` | No | `antigravity/1.13.3 Darwin/arm64` | HTTP User-Agent header |
+| `QUERY_DEBOUNCE` | No | `1` | Cache duration in minutes for googleapis queries |
 
 ## Docker
 

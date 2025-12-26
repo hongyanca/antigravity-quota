@@ -196,10 +196,10 @@ class TestAPIEndpoints:
 
     @patch("src.api._get_quota_data")
     def test_get_all_quota(self, mock_get_quota, client, mock_quota_data):
-        """Test /quota endpoint returns all models."""
+        """Test /quota/all endpoint returns all models."""
         mock_get_quota.return_value = mock_quota_data
 
-        response = client.get("/quota")
+        response = client.get("/quota/all")
 
         assert response.status_code == 200
         data = response.json()
@@ -208,10 +208,10 @@ class TestAPIEndpoints:
 
     @patch("src.api._get_quota_data")
     def test_get_gemini_3_pro(self, mock_get_quota, client, mock_quota_data):
-        """Test /quota/gemini-3-pro endpoint."""
+        """Test /quota/pro endpoint."""
         mock_get_quota.return_value = mock_quota_data
 
-        response = client.get("/quota/gemini-3-pro")
+        response = client.get("/quota/pro")
 
         assert response.status_code == 200
         data = response.json()
@@ -220,10 +220,10 @@ class TestAPIEndpoints:
 
     @patch("src.api._get_quota_data")
     def test_get_gemini_3_flash(self, mock_get_quota, client, mock_quota_data):
-        """Test /quota/gemini-3-flash endpoint."""
+        """Test /quota/flash endpoint."""
         mock_get_quota.return_value = mock_quota_data
 
-        response = client.get("/quota/gemini-3-flash")
+        response = client.get("/quota/flash")
 
         assert response.status_code == 200
         data = response.json()
@@ -232,10 +232,10 @@ class TestAPIEndpoints:
 
     @patch("src.api._get_quota_data")
     def test_get_claude_4_5(self, mock_get_quota, client, mock_quota_data):
-        """Test /quota/claude-4-5 endpoint."""
+        """Test /quota/claude endpoint."""
         mock_get_quota.return_value = mock_quota_data
 
-        response = client.get("/quota/claude-4-5")
+        response = client.get("/quota/claude")
 
         assert response.status_code == 200
         data = response.json()

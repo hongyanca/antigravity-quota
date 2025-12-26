@@ -13,6 +13,7 @@ from .config import (
     CLIENT_ID,
     CLIENT_SECRET,
     PROJECT_API_URL,
+    QUERY_DEBOUNCE,
     TOKEN_URL,
     USER_AGENT,
 )
@@ -136,7 +137,18 @@ def get_project_id(access_token: str) -> str | None:
 
 
 def get_quota(access_token: str, project_id: str | None = None) -> dict:
-    """Fetch quota information from the CloudCode API."""
+    """Fetch quota information from the CloudCode API with caching."""
+    global _quota_cache, _quota_cache_time
+
+    # Check if we have a valid cached response
+    now = time.time()
+    cache_max_age = QUERY_DEBOUNCE * 60  # Convert minutes to seconds
+    if _quota_cache is not None and (now - _quota_cache_time) < cache_max_age:
+        logger.info("Returning cached quota data (age: %.0fs)", now - _quota_cache_time)
+        return _quota_cache
+
+    # Fetch fresh data from API
+    logger.info("Fetching fresh quota data from googleapis.com")
     headers = {
         "Authorization": f"Bearer {access_token}",
         "User-Agent": USER_AGENT,
@@ -148,4 +160,16 @@ def get_quota(access_token: str, project_id: str | None = None) -> dict:
 
     response = httpx.post(API_URL, headers=headers, json=payload)
     response.raise_for_status()
-    return response.json()
+    result = response.json()
+
+    # Cache the result
+    _quota_cache = result
+    _quota_cache_time = now
+    logger.info("Cached quota data for %d minute(s)", QUERY_DEBOUNCE)
+
+    return result
+
+
+# Module-level cache for quota data
+_quota_cache: dict | None = None
+_quota_cache_time: float = 0
