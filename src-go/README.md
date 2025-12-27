@@ -9,6 +9,7 @@ This is a Go port of the Python FastAPI server for querying Google Cloud Code AI
 - **Reset Time Tracking** - Shows both absolute and relative reset times
 - **Filtered Endpoints** - Dedicated endpoints for specific model families
 - **Thread-safe Caching** - Concurrent-safe quota data caching
+- **Z.ai/ZHIPU Integration** - GLM quota monitoring with automatic ZAI_ variable mapping
 
 ## Quick Start
 

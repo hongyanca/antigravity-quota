@@ -18,6 +18,9 @@ const (
 	QuotaGood     = 50
 	QuotaWarning  = 20
 	QuotaCritical = 1
+
+	// Default Z.ai API base URL
+	DefaultZAIBaseURL = "https://api.z.ai/api/anthropic"
 )
 
 // Config holds all configuration values
@@ -56,6 +59,16 @@ func LoadConfig() *Config {
 		AccountFile:   resolveAccountFile(getEnvOrDefault("ACCOUNT_FILE", "antigravity.json")),
 		Port:          getEnvAsInt("PORT", 8000),
 		QueryDebounce: getEnvAsInt("QUERY_DEBOUNCE", 1),
+	}
+
+	// Map ZAI_ prefixed variables to ANTHROPIC_ for z.ai queries
+	if zaiToken := os.Getenv("ZAI_ANTHROPIC_AUTH_TOKEN"); zaiToken != "" {
+		os.Setenv("ANTHROPIC_AUTH_TOKEN", zaiToken)
+	}
+	if zaiBaseURL := os.Getenv("ZAI_ANTHROPIC_BASE_URL"); zaiBaseURL != "" {
+		os.Setenv("ANTHROPIC_BASE_URL", zaiBaseURL)
+	} else {
+		os.Setenv("ANTHROPIC_BASE_URL", DefaultZAIBaseURL)
 	}
 
 	return config

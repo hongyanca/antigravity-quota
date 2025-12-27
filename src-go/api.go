@@ -37,6 +37,8 @@ func setupRoutes(r *gin.Engine) {
 		quota.GET("/pro", service.GetGemini3Pro)
 		quota.GET("/flash", service.GetGemini3Flash)
 		quota.GET("/claude", service.GetClaude45)
+		quota.GET("/glm", service.GetGLMQuota)
+		quota.GET("/status-zai", service.GetQuotaStatusZAI)
 	}
 }
 
@@ -48,10 +50,12 @@ func (s *QuotaService) GetQuotaEndpoints(c *gin.Context) {
 			"/quota":          "This endpoint - lists all available endpoints",
 			"/quota/overview": "Quick summary (e.g., 'Pro 95% | Flash 90% | Claude 80%')",
 			"/quota/status":   "Terminal status with nerdfont icons and colors",
+			"/quota/status-zai": "GLM quota status with nerdfont icon and colors (e.g., 'Z 99%')",
 			"/quota/all":      "All models with percentage and relative reset time",
 			"/quota/pro":      "Gemini 3 Pro models (high, image, low)",
 			"/quota/flash":    "Gemini 3 Flash model",
 			"/quota/claude":   "Claude 4.5 models (opus, sonnet, thinking)",
+			"/quota/glm":      "GLM (Z.ai/ZHIPU) quota usage and limits",
 		},
 	})
 }
@@ -377,4 +381,52 @@ func (s *QuotaService) GetClaude45(c *gin.Context) {
 	quotaFormatted := formatQuota(quotaRaw, true)
 	filtered := filterModels(quotaFormatted, []string{"claude-opus-4-5-thinking", "claude-sonnet-4-5", "claude-sonnet-4-5-thinking"})
 	c.JSON(http.StatusOK, gin.H{"quota": filtered})
+}
+
+// GetGLMQuota returns GLM (Z.ai/ZHIPU) quota usage and limits
+func (s *QuotaService) GetGLMQuota(c *gin.Context) {
+	quotaFormatted, err := GetGLMQuota(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"quota": quotaFormatted})
+}
+
+// GetQuotaStatusZAI returns terminal-friendly GLM quota status
+func (s *QuotaService) GetQuotaStatusZAI(c *gin.Context) {
+	quotaFormatted, err := GetGLMQuota(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get GLM token quota
+	glmPct := 0
+	for _, model := range quotaFormatted.Models {
+		if model.Name == "glm" {
+			glmPct = model.Percentage
+			break
+		}
+	}
+
+	const (
+		Green = "\033[32m"
+		Red = "\033[31m"
+		Reset = "\033[0m"
+		ZAIIcon = "Z"
+	)
+
+	var status string
+	if glmPct == QuotaFull {
+		status = Green + ZAIIcon + Reset
+	} else if glmPct == 0 {
+		status = Red + ZAIIcon + Reset
+	} else {
+		pctStr := formatPercentageWithColor(glmPct)
+		status = fmt.Sprintf("%s %s", ZAIIcon, pctStr)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"overview": status})
 }
