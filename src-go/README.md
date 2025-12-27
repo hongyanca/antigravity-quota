@@ -1,4 +1,4 @@
-# Go implementation of Antigravity Quota API
+# Go implementation of Coding Plan Quota Query API
 
 This is a Go port of the Python FastAPI server for querying Google Cloud Code AI model quotas.
 
@@ -61,8 +61,8 @@ go test -v
 
 ```bash
 cd src-go
-go build -o antigravity-quota
-./antigravity-quota
+go build -o coding-plan-quota-query
+./coding-plan-quota-query
 ```
 
 ## Configuration

@@ -24,13 +24,13 @@ _zai_cache_lock = threading.Lock()
 async def query_zai_endpoint(url: str, auth_token: str, query_params: str = "") -> dict:
     """Query a Z.ai API endpoint and return JSON response with caching."""
     cache_key = f"{url}{query_params}"
-    
+
     # Check cache first
     with _zai_cache_lock:
         if cache_key in _zai_cache:
             logger.info("Returning cached z.ai data")
             return _zai_cache[cache_key]
-    
+
     headers = {
         "Authorization": auth_token,
         "Accept-Language": "en-US,en",
@@ -43,12 +43,12 @@ async def query_zai_endpoint(url: str, auth_token: str, query_params: str = "") 
             response.raise_for_status()
             json_data = response.json()
             result = json_data.get("data", json_data)
-            
+
             # Cache the result
             with _zai_cache_lock:
                 _zai_cache[cache_key] = result
             logger.info("Cached z.ai data for %d minute(s)", QUERY_DEBOUNCE)
-            
+
             return result
         except httpx.HTTPStatusError as e:
             raise HTTPException(status_code=e.response.status_code, detail=f"Z.ai API error: {e.response.text}")
@@ -76,10 +76,10 @@ def build_time_query_params() -> str:
     now = datetime.now(timezone.utc)
     start_date = datetime(now.year, now.month, now.day - 1, now.hour, 0, 0, 0, tzinfo=timezone.utc)
     end_date = datetime(now.year, now.month, now.day, now.hour, 59, 59, 999999, tzinfo=timezone.utc)
-    
+
     start_time = start_date.strftime("%Y-%m-%d %H:%M:%S")
     end_time = end_date.strftime("%Y-%m-%d %H:%M:%S")
-    
+
     return f"?startTime={quote(start_time)}&endTime={quote(end_time)}"
 
 

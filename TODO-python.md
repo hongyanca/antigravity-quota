@@ -1,7 +1,7 @@
-# Antigravity Quota API - Improvement Plan
+# Coding Plan Quota Query API - Improvement Plan
 
 ## Project Overview
-The **antigravity-quota** project is a FastAPI-based REST API (v0.3.0) that monitors Google Cloud Code AI model quotas for Gemini and Claude models. It features automatic OAuth token refresh, request caching, and terminal-friendly output with ANSI colors.
+The **coding-plan-quota-query** project is a FastAPI-based REST API (v0.4.0) that monitors Google Cloud Code AI model quotas for Gemini and Claude models. It features automatic OAuth token refresh, request caching, and terminal-friendly output with ANSI colors.
 
 **Tech Stack:** Python 3.13, FastAPI, httpx, pytest, Docker, uv package manager
 **Current State:** Well-structured, production-ready, ~1141 lines of code with good documentation

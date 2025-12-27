@@ -17,7 +17,6 @@ z.ai-query/*
 *.dll
 *.so
 *.dylib
-src-go/antigravity-quota
 src-go/bin/*
 
 # Test binary, built with `go test -c`

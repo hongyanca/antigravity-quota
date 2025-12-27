@@ -1,6 +1,6 @@
 [project]
-name = "antigravity-quota"
-version = "0.3.1"
+name = "coding-plan-quota-query"
+version = "0.4.0"
 description = "API Server for Antigravity Quota Management"
 readme = "README.md"
 requires-python = ">=3.13"
