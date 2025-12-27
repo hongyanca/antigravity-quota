@@ -8,6 +8,9 @@ build-go.sh
 # env file
 .env
 
+# Reference JavaScript files
+z.ai-query/*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

@@ -6,15 +6,20 @@ Endpoints:
 - GET /quota/pro - Gemini 3 Pro models (high, image, low)
 - GET /quota/flash - Gemini 3 Flash model
 - GET /quota/claude - Claude 4.5 models
+- GET /quota/glm - GLM (Z.ai/ZHIPU) quota usage and limits
 """
 
+import os
 import time
 import tomllib
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, HTTPException
 
+from . import config  # Import config to trigger ZAI->ANTHROPIC mapping
 from .cloudcode_client import (
     ensure_fresh_token,
     get_project_id,
@@ -23,6 +28,9 @@ from .cloudcode_client import (
     normalize_account,
 )
 from .constants import QUOTA_CRITICAL, QUOTA_FULL, QUOTA_GOOD, QUOTA_WARNING
+from .zai_client import get_glm_quota
+
+logger = logging.getLogger(__name__)
 
 
 def _get_version() -> str:
@@ -124,10 +132,12 @@ async def get_quota_endpoints():
             "/quota": "This endpoint - lists all available endpoints",
             "/quota/overview": "Quick summary (e.g., 'Pro 95% | Flash 90% | Claude 80%')",
             "/quota/status": "Terminal status with nerdfont icons and colors (e.g., '󰊭 90% |  99% 2h18m | 󰛄 80%')",
+            "/quota/status-zai": "GLM quota status with nerdfont icon and colors (e.g., 'Z 99%')",
             "/quota/all": "All models with percentage and relative reset time",
             "/quota/pro": "Gemini 3 Pro models (high, image, low)",
             "/quota/flash": "Gemini 3 Flash model",
             "/quota/claude": "Claude 4.5 models (opus, sonnet, thinking)",
+            "/quota/glm": "GLM (Z.ai/ZHIPU) quota usage and limits",
         },
     }
 
@@ -258,6 +268,58 @@ async def get_quota_status():
     return {"overview": overview}
 
 
+@app.get("/quota/status-zai")
+async def get_quota_status_zai():
+    """Get terminal-friendly GLM quota status with nerdfont symbol and colors."""
+    # Get GLM quota data
+    quota_formatted = await get_glm_quota()
+
+    # Get GLM token quota
+    glm_models = [m for m in quota_formatted["models"] if m["name"] == "glm"]
+    glm_pct = glm_models[0]["percentage"] if glm_models else 0
+
+    # ANSI color codes
+    GREEN = "\033[32m"
+    RED = "\033[31m"
+    RESET = "\033[0m"
+
+    # Nerdfont symbol for Z.ai
+    ZAI_ICON = "Z"  # nf-md-alpha-z-box
+
+    # Format status
+    if glm_pct == QUOTA_FULL:
+        # 100%: green icon only
+        status = f"{GREEN}{ZAI_ICON}{RESET}"
+    elif glm_pct == 0:
+        # 0%: red icon only
+        status = f"{RED}{ZAI_ICON}{RESET}"
+    else:
+        # 1-99%: icon + colored percentage
+        pct_str = format_percentage_with_color(glm_pct)
+        status = f"{ZAI_ICON} {pct_str}"
+
+    return {"overview": status}
+    RED = "\033[31m"
+    RESET = "\033[0m"
+
+    # Nerdfont symbol for Z.ai
+    ZAI_ICON = "Z"  # nf-md-alpha-z-box
+
+    # Format status
+    if glm_pct == QUOTA_FULL:
+        # 100%: green icon only
+        status = f"{GREEN}{ZAI_ICON}{RESET}"
+    elif glm_pct == 0:
+        # 0%: red icon only
+        status = f"{RED}{ZAI_ICON}{RESET}"
+    else:
+        # 1-99%: icon + colored percentage
+        pct_str = format_percentage_with_color(glm_pct)
+        status = f"{ZAI_ICON} {pct_str}"
+
+    return {"overview": status}
+
+
 @app.get("/quota/all")
 async def get_all_quota():
     """Get all models with relative reset time."""
@@ -292,3 +354,15 @@ async def get_claude_4_5():
         quota_formatted, ["claude-opus-4-5-thinking", "claude-sonnet-4-5", "claude-sonnet-4-5-thinking"]
     )
     return {"quota": filtered}
+
+
+@app.get("/quota/glm")
+async def get_glm_quota_endpoint():
+    """Get GLM (Z.ai/ZHIPU) quota usage and limits."""
+    quota_formatted = await get_glm_quota()
+    return {"quota": quota_formatted}
+
+    # Format to match antigravity quota format
+    quota_formatted = _format_glm_quota(quota_limit_processed)
+
+    return {"quota": quota_formatted}

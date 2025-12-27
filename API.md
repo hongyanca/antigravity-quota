@@ -39,6 +39,8 @@ cp .env.example .env
 | `ACCOUNT_FILE` | Path to account JSON file | `antigravity.json` |
 | `PORT` | Server port | `8000` |
 | `USER_AGENT` | HTTP User-Agent header | `antigravity/1.13.3 Darwin/arm64` |
+| `ZAI_ANTHROPIC_BASE_URL` | Z.ai/ZHIPU API base URL | `https://api.z.ai/api/anthropic` |
+| `ZAI_ANTHROPIC_AUTH_TOKEN` | Z.ai/ZHIPU authentication token | (required) |
 
 ---
 
@@ -64,10 +66,12 @@ GET /quota/usage
     "/quota": "This endpoint - lists all available endpoints",
     "/quota/overview": "Quick summary (e.g., 'Pro 95% | Flash 90% | Claude 80%')",
     "/quota/status": "Terminal status with nerdfont icons and colors",
+    "/quota/status-zai": "GLM quota status with nerdfont icon and colors (e.g., 'Z 99%')",
     "/quota/all": "All models with percentage and relative reset time",
     "/quota/pro": "Gemini 3 Pro models (high, image, low)",
     "/quota/flash": "Gemini 3 Flash model",
-    "/quota/claude": "Claude 4.5 models (opus, sonnet, thinking)"
+    "/quota/claude": "Claude 4.5 models (opus, sonnet, thinking)",
+    "/quota/glm": "GLM (Z.ai/ZHIPU) quota usage and limits"
   }
 }
 ```
@@ -116,12 +120,12 @@ GET /quota/status
 
 ```json
 {
-  "overview": "\u001b[32m󰊭\u001b[0m |  \u001b[33m45%\u001b[0m 2h18m | 󰛄 \u001b[31m5%\u001b[0m 1h30m"
+  "overview": "\u001b[32mG\u001b[0m | F \u001b[33m45%\u001b[0m 2h18m | 󰛄 \u001b[31m5%\u001b[0m 1h30m"
 }
 ```
 
 **Features:**
-- **Nerdfont icons**: 󰊭 (Gemini Pro),  (Flash), 󰛄 (Claude)
+- **Nerdfont icons**: (Claude)
 - **Color-coded output**:
   - 100%: Green colored icon only (no percentage shown)
   - 50-99%: Icon + green percentage + reset time
@@ -135,6 +139,42 @@ GET /quota/status
 ```bash
 # Display with colors in terminal
 curl -s http://127.0.0.1:8000/quota/status | jq -r '.overview' | xargs -0 printf "%b\n"
+```
+
+---
+
+### 2c. Get GLM Quota Status (Terminal)
+
+Get a terminal-friendly GLM quota status with nerdfont icon and ANSI colors.
+
+```http
+GET /quota/status-zai
+```
+
+> **Note**: This endpoint requires `ZAI_ANTHROPIC_BASE_URL` and `ZAI_ANTHROPIC_AUTH_TOKEN` environment variables to be set.
+
+**Response:**
+
+```json
+{
+  "overview": "Z \u001b[32m99%\u001b[0m"
+}
+```
+
+**Features:**
+- **Nerdfont icon**: Z (Z.ai/ZHIPU)
+- **Color-coded output**:
+  - 100%: Green colored icon only (no percentage shown)
+  - 50-99%: Icon + green percentage
+  - 20-49%: Icon + yellow percentage
+  - 1-19%: Icon + red percentage
+  - 0%: Red colored icon only (no percentage shown)
+
+**Example:**
+
+```bash
+# Display with colors in terminal
+curl -s http://127.0.0.1:8000/quota/status-zai | jq -r '.overview' | xargs -0 printf "%b\n"
 ```
 
 ---
@@ -229,7 +269,7 @@ GET /quota/all
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/all | jq '.quota.models[].name'
+curl -s http://127.0.0.1:8000/quota/all | jq '.quota.models[].name'
 ```
 
 ---
@@ -276,7 +316,7 @@ GET /quota/pro
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/pro | jq '.quota.models[] | {name, percentage}'
+curl -s http://127.0.0.1:8000/quota/pro | jq '.quota.models[] | {name, percentage}'
 ```
 
 ---
@@ -311,7 +351,7 @@ GET /quota/flash
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/flash | jq '.quota.models[0]'
+curl -s http://127.0.0.1:8000/quota/flash | jq '.quota.models[0]'
 ```
 
 ---
@@ -358,7 +398,72 @@ GET /quota/claude
 **Example:**
 
 ```bash
-curl http://127.0.0.1:8000/quota/claude | jq '.quota.models[] | select(.percentage < 100)'
+curl -s http://127.0.0.1:8000/quota/claude | jq '.quota.models[] | select(.percentage < 100)'
+```
+
+---
+
+### 7. Get GLM Quota (Z.ai/ZHIPU)
+
+Get quota for GLM coding plan (Z.ai or ZHIPU platforms).
+
+```http
+GET /quota/glm
+```
+
+> **Note**: This endpoint requires `ZAI_ANTHROPIC_BASE_URL` and `ZAI_ANTHROPIC_AUTH_TOKEN` environment variables to be set.
+
+**Required Environment Variables:**
+
+```bash
+export ZAI_ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+# or
+export ZAI_ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+
+export ZAI_ANTHROPIC_AUTH_TOKEN="your-zai-coding-plan-token-here"
+```
+
+> **Note**: ZAI_ prefixed variables are automatically mapped to ANTHROPIC_ variables internally.
+
+**Response:**
+
+```json
+{
+  "quota": {
+    "models": [
+      {
+        "name": "glm",
+        "percentage": 99
+      },
+      {
+        "name": "glm-coding-plan-mcp-monthly",
+        "percentage": 100
+      },
+      {
+        "name": "glm-coding-plan-search-prime",
+        "percentage": 100
+      },
+      {
+        "name": "glm-coding-plan-web-reader",
+        "percentage": 100
+      }
+    ],
+    "last_updated": 1766825445,
+    "is_forbidden": false
+  }
+}
+```
+
+**Model Names:**
+- `glm` - Token quota (5 hour window)
+- `glm-coding-plan-mcp-monthly` - Overall MCP usage quota (1 month window)
+- `glm-coding-plan-search-prime` - Search Prime MCP tool usage
+- `glm-coding-plan-web-reader` - Web Reader MCP tool usage
+
+**Example:**
+
+```bash
+curl -s http://127.0.0.1:8000/quota/glm | jq '.quota.models[] | {name, percentage}'
 ```
 
 ---

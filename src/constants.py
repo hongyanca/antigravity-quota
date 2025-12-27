@@ -11,3 +11,6 @@ QUOTA_FULL = 100
 QUOTA_GOOD = 50
 QUOTA_WARNING = 20
 QUOTA_CRITICAL = 1
+
+# Default Z.ai API base URL
+DEFAULT_ZAI_BASE_URL = "https://api.z.ai/api/anthropic"

@@ -6,6 +6,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .constants import DEFAULT_ZAI_BASE_URL
+
 logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
@@ -39,3 +41,11 @@ PORT = int(os.getenv("PORT", "8000"))
 # Query debounce time in minutes (loaded from .env)
 # Cache googleapis responses for this many minutes to avoid spamming
 QUERY_DEBOUNCE = int(os.getenv("QUERY_DEBOUNCE", "1"))
+
+# Map ZAI_ prefixed variables to ANTHROPIC_ for z.ai queries
+if os.getenv("ZAI_ANTHROPIC_AUTH_TOKEN"):
+    os.environ["ANTHROPIC_AUTH_TOKEN"] = os.getenv("ZAI_ANTHROPIC_AUTH_TOKEN")
+if os.getenv("ZAI_ANTHROPIC_BASE_URL"):
+    os.environ["ANTHROPIC_BASE_URL"] = os.getenv("ZAI_ANTHROPIC_BASE_URL")
+else:
+    os.environ["ANTHROPIC_BASE_URL"] = DEFAULT_ZAI_BASE_URL

@@ -1,6 +1,6 @@
 # Antigravity Quota API
 
-A FastAPI server for querying Google Cloud Code AI model quotas. Monitor your Gemini and Claude model usage through a simple REST API.
+A FastAPI server for querying [Google Antigravity](https://antigravity.google/) and [z.ai GLM Coding Plan](https://z.ai/subscribe) usages. Monitor your Antigravity Gemini, Antigravity Claude and GLM model usage through a simple REST API.
 
 ## Features
 
@@ -49,6 +49,10 @@ ACCOUNT_FILE=antigravity.json
 
 # Server port (optional, default: 8000)
 PORT=8000
+
+# z.ai environment variables (automatically mapped to ANTHROPIC_* variables)
+ZAI_ANTHROPIC_AUTH_TOKEN=123456789.abcdefg
+ZAI_ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
 ```
 
 3. Place your Antigravity account JSON file in the project root (or update `ACCOUNT_FILE` path). https://github.com/router-for-me/CLIProxyAPI https://help.router-for.me/configuration/provider/antigravity.html can get the `.json` file for authentication.
@@ -68,11 +72,13 @@ The server will start at `http://0.0.0.0:8000`.
 | `GET /quota` | List all available endpoints |
 | `GET /quota/usage` | Alias for `/quota` |
 | `GET /quota/overview` | Quick summary string (e.g., "Pro 95% \| Flash 90% \| Claude 80%") |
-| `GET /quota/status` | Terminal status with colored nerdfont icons (green=100%, red=0%) |
+| `GET /quota/status` | Colored terminal status (green=100%, red=0%) |
+| `GET /quota/status-zai` | Colored terminal status for GLM (e.g., "Z 99%") |
 | `GET /quota/all` | All Gemini and Claude models |
 | `GET /quota/pro` | Gemini 3 Pro models (high, image, low) |
 | `GET /quota/flash` | Gemini 3 Flash model |
 | `GET /quota/claude` | Claude 4.5 models |
+| `GET /quota/glm` | GLM (Z.ai/ZHIPU) quota usage and limits |
 
 ### Example Response
 
@@ -123,6 +129,7 @@ antigravity-quota/
 │   ├── __init__.py            # Package init
 │   ├── api.py                 # FastAPI app and endpoints
 │   ├── cloudcode_client.py    # Google Cloud Code API client
+│   ├── zai_client.py          # Z.ai/ZHIPU API client with caching
 │   └── config.py              # Configuration and env loading
 ├── test/
 │   ├── __init__.py            # Test package init
@@ -161,6 +168,17 @@ uv run pytest test/ -v
 | `PORT` | No | `8000` | Server port |
 | `USER_AGENT` | No | `antigravity/1.13.3 Darwin/arm64` | HTTP User-Agent header |
 | `QUERY_DEBOUNCE` | No | `1` | Cache duration in minutes for googleapis queries |
+
+**For GLM endpoint (`/quota/glm`):**
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ZAI_ANTHROPIC_BASE_URL` | Yes | - | Z.ai or ZHIPU API base URL (mapped to ANTHROPIC_BASE_URL) |
+| `ZAI_ANTHROPIC_AUTH_TOKEN` | Yes | - | Authentication token for Z.ai/ZHIPU (mapped to ANTHROPIC_AUTH_TOKEN) |
+
+Supported `ZAI_ANTHROPIC_BASE_URL` values:
+- `https://api.z.ai/api/anthropic`
+- `https://open.bigmodel.cn/api/anthropic`
 
 ## Docker
 
@@ -205,7 +223,7 @@ docker compose up -d
 
 ## AI Assistance Disclaimer
 
-This project was developed with assistance from AI/LLMs (including Claude Code, Google Antigravity, and related tools), supervised by a human who occasionally knew what he was doing.
+This project was developed with assistance from AI/LLMs (including Claude Code, Google Antigravity, Kiro and related tools), supervised by a human who occasionally knew what he was doing.
 
 ## License
 
