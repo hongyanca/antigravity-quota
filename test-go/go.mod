@@ -1,4 +1,4 @@
-module antigravity-quota-test
+module coding-plan-quota-query-test
 
 go 1.25.5
 

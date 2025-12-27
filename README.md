@@ -1,4 +1,4 @@
-# Antigravity Quota API
+# Coding Plan Quota Query API
 
 A FastAPI server for querying [Google Antigravity](https://antigravity.google/) and [z.ai GLM Coding Plan](https://z.ai/subscribe) usages. Monitor your Antigravity Gemini, Antigravity Claude and GLM model usage through a simple REST API.
 
@@ -22,7 +22,7 @@ A FastAPI server for querying [Google Antigravity](https://antigravity.google/) 
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd antigravity-quota
+cd coding-plan-quota-query
 
 # Install dependencies
 uv sync
@@ -122,7 +122,7 @@ When the server is running:
 ## Project Structure
 
 ```
-antigravity-quota/
+coding-plan-quota-query/
 ├── antigravity.json           # Account file (not in git)
 ├── main.py                    # Entry point - starts the uvicorn server
 ├── src/
@@ -131,6 +131,7 @@ antigravity-quota/
 │   ├── cloudcode_client.py    # Google Cloud Code API client
 │   ├── zai_client.py          # Z.ai/ZHIPU API client with caching
 │   └── config.py              # Configuration and env loading
+├── src-go/                    # Go implementation
 ├── test/
 │   ├── __init__.py            # Test package init
 │   ├── test_api.py            # API module tests
@@ -139,8 +140,13 @@ antigravity-quota/
 ├── .env.example               # Example environment file
 ├── Dockerfile                 # Container build
 ├── API.md                     # Detailed API documentation
+├── README-go.md               # Go implementation documentation
 └── README.md                  # This file
 ```
+
+## Go Implementation
+
+A high-performance Go version is available in the `src-go/` directory. The Go implementation offers better resource efficiency and faster startup times while maintaining full API compatibility with the Python version. See [README-go.md](README-go.md) for detailed information about features, performance comparisons, and Go-specific deployment instructions.
 
 ## Testing
 
@@ -185,7 +191,7 @@ Supported `ZAI_ANTHROPIC_BASE_URL` values:
 ### Build
 
 ```bash
-docker build -t antigravity-quota .
+docker build -t coding-plan-quota-query .
 ```
 
 ### Run
@@ -194,8 +200,8 @@ docker build -t antigravity-quota .
 docker run -d -p 8000:8000 \
   --env-file .env \
   -v $(pwd)/antigravity.json:/app/antigravity.json \
-  --name antigravity-quota \
-  antigravity-quota
+  --name coding-plan-quota-query \
+  coding-plan-quota-query
 ```
 
 ### Docker Compose

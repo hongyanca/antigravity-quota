@@ -2,7 +2,7 @@
 
 # Build the application
 build:
-	go build -o bin/antigravity-quota .
+	go build -o bin/coding-plan-quota-query .
 
 # Run the application
 run:
@@ -27,10 +27,10 @@ run-race:
 
 # Build for multiple platforms
 build-all:
-	GOOS=linux GOARCH=amd64 go build -o bin/antigravity-quota-linux-amd64 .
-	GOOS=darwin GOARCH=amd64 go build -o bin/antigravity-quota-darwin-amd64 .
-	GOOS=darwin GOARCH=arm64 go build -o bin/antigravity-quota-darwin-arm64 .
-	GOOS=windows GOARCH=amd64 go build -o bin/antigravity-quota-windows-amd64.exe .
+	GOOS=linux GOARCH=amd64 go build -o bin/coding-plan-quota-query-linux-amd64 .
+	GOOS=darwin GOARCH=amd64 go build -o bin/coding-plan-quota-query-darwin-amd64 .
+	GOOS=darwin GOARCH=arm64 go build -o bin/coding-plan-quota-query-darwin-arm64 .
+	GOOS=windows GOARCH=amd64 go build -o bin/coding-plan-quota-query-windows-amd64.exe .
 
 # Format code
 fmt:

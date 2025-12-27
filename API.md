@@ -1,4 +1,4 @@
-# Antigravity Quota API
+# Coding Plan Quota Query API
 
 FastAPI server for querying Google Cloud Code AI model quotas.
 
@@ -61,7 +61,7 @@ GET /quota/usage
 
 ```json
 {
-  "message": "Welcome to the Antigravity Quota API",
+  "message": "Welcome to the Coding Plan Quota Query API",
   "endpoints": {
     "/quota": "This endpoint - lists all available endpoints",
     "/quota/overview": "Quick summary (e.g., 'Pro 95% | Flash 90% | Claude 80%')",

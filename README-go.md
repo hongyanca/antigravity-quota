@@ -2,43 +2,45 @@
 
 ## Overview
 
-Successfully re-implemented the Antigravity Quota API from Python/FastAPI to Go/Gin. The Go version maintains full API compatibility while offering improved performance characteristics.
+Successfully re-implemented the Coding Plan Quota Query API from Python/FastAPI to Go/Gin. The Go version maintains full API compatibility while offering improved performance characteristics.
 
 ## File Structure
 
 ```
 src-go/
-├── main.go          # Entry point and server setup
-├── config.go        # Configuration management
-├── client.go        # Google Cloud Code API client
-├── api.go           # HTTP handlers and routing
-├── go.mod           # Go module dependencies
-├── Makefile         # Build automation
-├── Dockerfile       # Container build
-└── README.md        # Go-specific documentation
+├── main.go            # Entry point and server setup
+├── config.go          # Configuration management
+├── client.go          # Google Cloud Code API client
+├── api.go             # HTTP handlers and routing
+├── go.mod             # Go module dependencies
+├── Makefile           # Build automation
+├── Dockerfile         # Container build
+├── README.md          # Go-specific documentation
+├── zai_client.go      # z.ai GLM Coding Plan API client 
+└── zai_client_test.go # z.ai GLM Coding Plan API client test
 
 test-go/
-├── main_test.go     # Unit tests for core functions
-├── api_test.go      # API integration tests
-└── go.mod           # Test module dependencies
+├── main_test.go       # Unit tests for core functions
+├── api_test.go        # API integration tests
+└── go.mod             # Test module dependencies
 ```
 
 ## Key Features Implemented
 
-### ✅ Complete API Compatibility
-- All 8 endpoints from Python version
+### Complete API Compatibility
+- All 10 endpoints from Python version
 - Identical JSON response formats
 - Same configuration via `.env` file
 - Compatible with existing account JSON files
 
-### ✅ Core Functionality
+### Core Functionality
 - **OAuth Token Management**: Automatic refresh with 5-minute buffer
 - **Quota Fetching**: Google Cloud Code API integration
 - **Data Formatting**: Percentage calculations and time formatting
 - **Caching**: Thread-safe quota data caching (1-minute TTL)
 - **Filtering**: Model-specific endpoint filtering
 
-### ✅ Enhanced Features
+### Enhanced Features
 - **Thread Safety**: Concurrent request handling with sync.RWMutex
 - **Performance**: Lower memory usage and faster startup
 - **Error Handling**: Structured error responses
@@ -49,21 +51,23 @@ test-go/
 
 | Endpoint | Status | Description |
 |----------|--------|-------------|
-| `GET /quota` | ✅ | List available endpoints |
-| `GET /quota/usage` | ✅ | Alias for `/quota` |
-| `GET /quota/overview` | ✅ | Quick summary string |
-| `GET /quota/status` | ✅ | Terminal status with colors |
-| `GET /quota/all` | ✅ | All Gemini and Claude models |
-| `GET /quota/pro` | ✅ | Gemini 3 Pro models |
-| `GET /quota/flash` | ✅ | Gemini 3 Flash model |
-| `GET /quota/claude` | ✅ | Claude 4.5 models |
+| `GET /quota` | ✓ | List available endpoints |
+| `GET /quota/usage` | ✓ | Alias for `/quota` |
+| `GET /quota/overview` | ✓ | Quick summary string |
+| `GET /quota/status` | ✓ | Terminal status with colors |
+| `GET /quota/status-zai` | ✓ | Terminal status for GLM |
+| `GET /quota/all` | ✓ | All Gemini and Claude models |
+| `GET /quota/pro` | ✓ | Gemini 3 Pro models |
+| `GET /quota/flash` | ✓ | Gemini 3 Flash model |
+| `GET /quota/claude` | ✓ | Claude 4.5 models |
+| `GET /quota/glm` | ✓ | GLM (Z.ai/ZHIPU) quota usage |
 
 ## Testing
 
 - **Unit Tests**: 11 test functions covering core logic
 - **Integration Tests**: Mock HTTP server for API testing
 - **Coverage**: Configuration, client, API handlers, and utilities
-- **All Tests Passing**: ✅ 100% pass rate
+- **All Tests Passing**: 100% pass rate
 
 ## Performance Comparison
 
@@ -89,19 +93,19 @@ cd src-go
 make build
 
 cd ..
-./src-go/bin/antigravity-quota
+./src-go/bin/coding-plan-quota-query
 ```
 
 ### Docker
 ```bash
-docker build -t antigravity-quota ./src-go/
+docker build -t coding-plan-quota-query ./src-go/
 
-docker kill antigravity-quota
+docker kill coding-plan-quota-query
 docker run --rm -d -p 8000:8000 \
   --env-file .env \
   -v $(pwd)/antigravity.json:/app/antigravity.json:rw \
-  --name antigravity-quota \
-  antigravity-quota
+  --name coding-plan-quota-query \
+  coding-plan-quota-query
 ```
 
 ### Testing
@@ -119,6 +123,8 @@ Uses the same `.env` file as Python version:
 - `PORT` - Server port (default: 8000)
 - `USER_AGENT` - HTTP User-Agent header
 - `QUERY_DEBOUNCE` - Cache duration in minutes
+- `ZAI_ANTHROPIC_BASE_URL` - Z.ai or ZHIPU API base URL
+- `ZAI_ANTHROPIC_AUTH_TOKEN` - Authentication token for Z.ai/ZHIPU
 
 ## Deployment Benefits
 
