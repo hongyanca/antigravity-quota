@@ -118,7 +118,7 @@ func TestGetBaseDomain(t *testing.T) {
 
 	for _, test := range tests {
 		platform, domain, err := GetBaseDomain(test.baseURL)
-		
+
 		if test.hasError {
 			if err == nil {
 				t.Errorf("Expected error for %s, got none", test.baseURL)
