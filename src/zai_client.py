@@ -4,7 +4,7 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import quote, urlparse
 
 import httpx
@@ -73,9 +73,9 @@ def get_base_domain(base_url: str) -> tuple[str, str]:
 
 def build_time_query_params() -> str:
     """Build query parameters for time-based endpoints."""
-    now = datetime.now(timezone.utc)
-    start_date = datetime(now.year, now.month, now.day - 1, now.hour, 0, 0, 0, tzinfo=timezone.utc)
-    end_date = datetime(now.year, now.month, now.day, now.hour, 59, 59, 999999, tzinfo=timezone.utc)
+    now = datetime.now(UTC)
+    start_date = datetime(now.year, now.month, now.day - 1, now.hour, 0, 0, 0, tzinfo=UTC)
+    end_date = datetime(now.year, now.month, now.day, now.hour, 59, 59, 999999, tzinfo=UTC)
 
     start_time = start_date.strftime("%Y-%m-%d %H:%M:%S")
     end_time = end_date.strftime("%Y-%m-%d %H:%M:%S")

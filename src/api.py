@@ -1,7 +1,11 @@
 """FastAPI server for Antigravity quota queries.
 
 Endpoints:
+- GET /quota - List all available endpoints
+- GET /quota/usage - Alias for /quota
 - GET /quota/overview - Quick summary ("Pro 95% | Flash 90% | Claude 80%")
+- GET /quota/status - Terminal status with nerdfont icons and colors
+- GET /quota/status-zai - GLM quota status with nerdfont icon and colors
 - GET /quota/all - All models with relative reset time
 - GET /quota/pro - Gemini 3 Pro models (high, image, low)
 - GET /quota/flash - Gemini 3 Flash model
@@ -9,17 +13,15 @@ Endpoints:
 - GET /quota/glm - GLM (Z.ai/ZHIPU) quota usage and limits
 """
 
-import os
+import logging
 import time
 import tomllib
-import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-import httpx
 from fastapi import FastAPI, HTTPException
 
-from . import config  # Import config to trigger ZAI->ANTHROPIC mapping
+from . import config  # noqa: F401 Import config to trigger ZAI->ANTHROPIC mapping
 from .cloudcode_client import (
     ensure_fresh_token,
     get_project_id,
@@ -51,7 +53,7 @@ def format_time_remaining(reset_time: str) -> str:
     """Calculate time remaining until reset in 'Xh Ym' format."""
     try:
         reset_dt = datetime.fromisoformat(reset_time.replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         delta = reset_dt - now
 
         if delta.total_seconds() <= 0:
@@ -172,7 +174,7 @@ def format_time_compact(reset_time: str) -> str:
     """Calculate time remaining until reset in compact 'XhYm' format."""
     try:
         reset_dt = datetime.fromisoformat(reset_time.replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         delta = reset_dt - now
 
         if delta.total_seconds() <= 0:
@@ -299,25 +301,7 @@ async def get_quota_status_zai():
         status = f"{ZAI_ICON} {pct_str}"
 
     return {"overview": status}
-    RED = "\033[31m"
-    RESET = "\033[0m"
 
-    # Nerdfont symbol for Z.ai
-    ZAI_ICON = "Z"  # nf-md-alpha-z-box
-
-    # Format status
-    if glm_pct == QUOTA_FULL:
-        # 100%: green icon only
-        status = f"{GREEN}{ZAI_ICON}{RESET}"
-    elif glm_pct == 0:
-        # 0%: red icon only
-        status = f"{RED}{ZAI_ICON}{RESET}"
-    else:
-        # 1-99%: icon + colored percentage
-        pct_str = format_percentage_with_color(glm_pct)
-        status = f"{ZAI_ICON} {pct_str}"
-
-    return {"overview": status}
 
 
 @app.get("/quota/all")
@@ -360,9 +344,4 @@ async def get_claude_4_5():
 async def get_glm_quota_endpoint():
     """Get GLM (Z.ai/ZHIPU) quota usage and limits."""
     quota_formatted = await get_glm_quota()
-    return {"quota": quota_formatted}
-
-    # Format to match antigravity quota format
-    quota_formatted = _format_glm_quota(quota_limit_processed)
-
     return {"quota": quota_formatted}
